@@ -1,0 +1,11 @@
+body{
+    background-color: plum;
+}
+#input_1{
+   width:1640px;
+    border:2px solid black;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+   padding:20px;
+}
