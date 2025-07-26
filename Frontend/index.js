@@ -1,36 +1,69 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const todoList = document.querySelector("#todoList");
+  const url="http://localhost:3000/todos";
+document.addEventListener("DOMContentLoaded",()=>{
+loadTodos();
+const addbtn=document.getElementById("button_1");
+addbtn.addEventListener("click",addTodos);
+})
+function loadTodos() {
+    fetch(url)
+    .then(res => res.json())
+    .then(data => {
+        const list = document.getElementById("todoList");
+        list.innerHTML = ""; // ✅ Clear previous content
 
-    fetch("http://localhost:3000/todos")
-        .then(res => res.json())
-        .then(data => {
-            console.log("Fetched data:", data); // <-- See if data is showing in console
-            data.forEach(item => {
-              const div = document.createElement("div");
-    div.textContent =  (item); // fallback if .text is undefined
-    todoList.appendChild(div);
-            });
-        })
-        .catch(err => console.error("Error fetching todos:", err));
-});
-document.getElementById("button_1").addEventListener("click",async ()=>{
+        data.forEach(todo => {
+            const div = document.createElement("div");
+            const editbtn = document.createElement("button");
+            const deletebtn=document.createElement("button");
+            deletebtn.innerText="Delete";
+            deletebtn.addEventListener("click",()=>Delete(todo._id));
+            editbtn.innerText = "Edit";
+            editbtn.addEventListener("click", () => Edit(todo._id, todo.title));
+            div.innerText = todo.title;
+            list.appendChild(div);
+            div.appendChild(editbtn);
+            div.appendChild(deletebtn);
+        });
+    });
+}
+
+function addTodos(){
     const input=document.getElementById("todoInput");
-    const title=input.value.trim();
-     if (!title) return alert("Please enter a task!");
-    const result= await fetch("http://localhost:3000/todos",{
+    const text=input.value;
+    fetch(url,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
-body:JSON.stringify({title})
+body:JSON.stringify({title:text})
     })
-    const data=await result.json();
-    if(data.success){
-      const li = document.createElement("li");
-  li.textContent = title; 
-  document.getElementById("todoList").appendChild(li)
+    .then(res => res.json())
+.then(data => {
+    if (data.success) {
+        input.value = "";
+        loadTodos();
+    } else {
+        alert("Failed to add todo.");
     }
-    else{
-         alert("Failed to add task");
-    }
-  
+});
+}
+function Edit(id, currentTitle) {
+    const newTitle = prompt("Edit your todo:", currentTitle);
+    if (!newTitle) return;
 
+    fetch(`http://localhost:3000/todos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle })
+    })
+    .then(res => res.json())
+    .then(() => loadTodos());
+}
+function Delete(id){
+fetch(`http://localhost:3000/todos/${id}`,{
+    method:"DELETE"
+}).then(res=>res.json())
+.then(data=>{
+    if(data.success){
+        loadTodos();
+    }
 })
+}

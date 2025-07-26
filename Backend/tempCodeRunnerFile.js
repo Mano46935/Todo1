@@ -14,9 +14,31 @@ app.get('/todos', async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
     const collection = db.collection('Data');
+
     const data = await collection.find({}).toArray();
-    res.json(data); 
+   const titlesOnly = data.map(item => item.title);
+res.json(titlesOnly);
+
 });
+app.post("/todos",async(req,res)=>{
+await client.connect();
+const db=client.db(dbName);
+const collection=db.collection('Data');
+const todo=req.body;
+const result=await collection.insertOne(todo);
+res.json({success: true,insertedId: result.insertedId });
+});
+app.put("/todos:id",async(req,res)=>{
+    await client.connect();
+    const db=client.db(dbName);
+    const collection=db.collection('Data');
+    const {title}=req.body;
+    const result = await db.updateOne(
+        {_id: new ObjectId(req.params.id)},
+        {$set:{title}}
+    );
+    res.send({success:result.modifiendCount>0});
+})
 
 app.listen(3000, () => {
     console.log("Backend running on http://localhost:3000");
